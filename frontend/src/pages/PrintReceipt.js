@@ -83,6 +83,7 @@ export default function PrintReceipt() {
         <div className="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-100 flex justify-between print:bg-white print:border-gray-200">
           <div>
             <h3 className="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-3">Billed To</h3>
+            <p className="text-sm text-gray-900 font-medium mb-1">Student Name: <span className="font-semibold">{receipt.user_name || 'N/A'}</span></p>
             <p className="font-mono text-sm text-gray-900 mb-1">User ID: <span className="font-semibold">{receipt.user_id}</span></p>
             <p className="text-sm text-gray-900 font-medium">Program: <span className="font-semibold">{receipt.program_name || 'N/A'}</span></p>
             <p className="text-sm text-gray-900 font-medium">Academic Year: <span className="font-semibold">{receipt.academic_year || 'N/A'}</span></p>
@@ -101,6 +102,7 @@ export default function PrintReceipt() {
               <tr>
                 <th className="px-6 py-4">Description</th>
                 <th className="px-6 py-4 text-center">Type</th>
+                <th className="px-6 py-4 text-center">Class</th>
                 <th className="px-6 py-4 text-right">Amount</th>
               </tr>
             </thead>
@@ -112,6 +114,9 @@ export default function PrintReceipt() {
                 </td>
                 <td className="px-6 py-5 text-center">
                   <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full whitespace-nowrap">{receipt.bill_type}</span>
+                </td>
+                <td className="px-6 py-5 text-center">
+                  <span className="text-gray-600 font-medium">{receipt.user_class || 'N/A'}</span>
                 </td>
                 <td className="px-6 py-5 text-right font-mono font-bold text-gray-900 text-base">
                   ₹{Number(receipt.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

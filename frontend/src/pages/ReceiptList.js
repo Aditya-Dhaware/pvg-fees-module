@@ -20,7 +20,7 @@ export default function ReceiptList() {
     setLoading(true);
     try {
       const params = academicYear ? `?academic_year=${academicYear}` : "";
-      const { data } = await api.get(`/receipts${params}`);
+      const { data } = await api.get(`/receipts/${params}`);
       setReceipts(data);
     } catch (err) { console.error(err); }
     setLoading(false);
@@ -28,7 +28,7 @@ export default function ReceiptList() {
 
   return (
     <AdminLayout title="Receipts">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--erp-dark)' }}>Receipts</h2>
         <select 
           className="erp-form-control" 

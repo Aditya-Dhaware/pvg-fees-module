@@ -27,7 +27,7 @@ export default function PaymentHistory() {
     setLoading(true);
     try {
       const params = academicYear ? `?academic_year=${academicYear}` : "";
-      const { data } = await api.get(`/payments${params}`);
+      const { data } = await api.get(`/payments/${params}`);
       setPayments(data);
     } catch (err) {
       console.error(err);
@@ -43,7 +43,7 @@ export default function PaymentHistory() {
 
   return (
     <AdminLayout title="Payment History">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--erp-dark)' }}>Payments</h2>
         <select 
           className="erp-form-control" 

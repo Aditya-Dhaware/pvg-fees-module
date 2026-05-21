@@ -1,8 +1,10 @@
-from uuid import UUID
 from datetime import datetime
-from typing import Optional
 from decimal import Decimal
-from pydantic import BaseModel
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
 
 class PaymentBase(BaseModel):
     bill_id: UUID
@@ -10,8 +12,10 @@ class PaymentBase(BaseModel):
     amount: Decimal
     status: str = "PENDING"
 
+
 class PaymentCreate(PaymentBase):
     razorpay_order_id: str
+
 
 class Payment(PaymentBase):
     payment_id: UUID
@@ -20,8 +24,13 @@ class Payment(PaymentBase):
     razorpay_signature: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    # Extra fields for UI from joined Bill
+    program_name: Optional[str] = None
+    academic_year: Optional[str] = None
+    bill_type: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class VerifyPaymentRequest(BaseModel):
     razorpay_order_id: str

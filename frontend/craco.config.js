@@ -81,6 +81,31 @@ webpackConfig.devServer = (devServerConfig) => {
     };
   }
 
+  devServerConfig.proxy = {
+    "/api": {
+      target: "http://localhost:8000",
+      changeOrigin: true,
+      secure: false,
+      xfwd: true,
+      onError: (err, req, res) => {
+        console.error('Proxy Error:', err);
+      },
+      onProxyReq: (proxyReq, req, res) => {
+        console.log('Proxying:', req.method, req.url);
+      }
+    },
+    "/docs": {
+      target: "http://127.0.0.1:8000",
+      changeOrigin: true,
+      secure: false,
+    },
+    "/openapi.json": {
+      target: "http://127.0.0.1:8000",
+      changeOrigin: true,
+      secure: false,
+    },
+  };
+  devServerConfig.allowedHosts = "all";
   devServerConfig.historyApiFallback = true;
   return devServerConfig;
 };

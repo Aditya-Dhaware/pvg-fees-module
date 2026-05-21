@@ -44,7 +44,7 @@ export default function BillManagement() {
         params.append("academic_year", filters.academic_year);
       if (filters.status) params.append("status", filters.status);
       if (filters.user_id) params.append("user_id", filters.user_id);
-      const { data } = await api.get(`/bills?${params.toString()}`);
+      const { data } = await api.get(`/bills/?${params.toString()}`);
       setBills(data);
     } catch (err) {
       console.error(err);
@@ -100,7 +100,7 @@ export default function BillManagement() {
           alignItems: "flex-start",
           flexWrap: "wrap",
           gap: "1rem",
-          mb: "2rem",
+          marginBottom: "1rem",
         }}
       >
         <h2 style={{ margin: 0, fontSize: "1.5rem", color: "var(--erp-dark)" }}>

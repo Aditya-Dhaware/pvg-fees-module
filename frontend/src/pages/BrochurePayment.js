@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
-import { CreditCard, CheckCircle, AlertCircle, FileText, ArrowLeft, Shield } from "lucide-react";
+import {
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
+  FileText,
+  ArrowLeft,
+  Shield,
+} from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 export default function BrochurePayment() {
@@ -13,10 +20,47 @@ export default function BrochurePayment() {
   const [error, setError] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paying, setPaying] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+
+  // Use the provided ngrok link as the default destination
+  const ADMISSION_URL =
+    searchParams.get("redirect_url") ||
+    "https://impotence-synthetic-ambition.ngrok-free.dev/brochure";
+
+  // Handle countdown and redirect
+  useEffect(() => {
+    let timer;
+    if (countdown !== null && countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else if (countdown === 0) {
+      window.location.href = ADMISSION_URL;
+    }
+    return () => clearTimeout(timer);
+  }, [countdown, ADMISSION_URL]);
+
+  // Start countdown if bill is already paid when loaded
+  useEffect(() => {
+    if (bill?.status === "PAID" && countdown === null && !loading) {
+      setCountdown(5);
+    }
+  }, [bill?.status, loading, countdown]);
+
+  // Auto-dismiss payment status after 5 seconds if it's info or error
+  useEffect(() => {
+    if (
+      paymentStatus &&
+      (paymentStatus.type === "info" || paymentStatus.type === "error")
+    ) {
+      const timer = setTimeout(() => setPaymentStatus(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus]);
 
   const fetchBill = useCallback(async () => {
     if (!billId) {
-      setError("No bill ID provided. Please use the link from the Admission portal.");
+      setError(
+        "No bill ID provided. Please use the link from the Admission portal.",
+      );
       setLoading(false);
       return;
     }
@@ -29,7 +73,10 @@ export default function BrochurePayment() {
       }
       setBill(data);
     } catch (err) {
-      setError(err.response?.data?.detail || "Could not load bill details. Please check the link.");
+      setError(
+        err.response?.data?.detail ||
+          "Could not load bill details. Please check the link.",
+      );
     }
     setLoading(false);
   }, [billId]);
@@ -43,7 +90,9 @@ export default function BrochurePayment() {
     setPaying(true);
     setPaymentStatus(null);
     try {
-      const { data } = await api.post(`/payments/create-order?bill_id=${bill.bill_id}&user_id=${bill.user_id}`);
+      const { data } = await api.post(
+        `/payments/create-order?bill_id=${bill.bill_id}&user_id=${bill.user_id}`,
+      );
       const options = {
         key: data.key_id,
         amount: data.order.amount,
@@ -56,255 +105,629 @@ export default function BrochurePayment() {
             const verifyRes = await api.post("/payments/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
+              razorpay_signature: response.razorpay_signature,
             });
             setPaymentStatus({
               type: "success",
               message: `Payment successful! Receipt: ${verifyRes.data.receipt.receipt_number}`,
-              receipt: verifyRes.data.receipt
+              receipt: verifyRes.data.receipt,
             });
-            // Refresh bill to show updated status
+            // Refresh bill and start countdown
+            setCountdown(5);
             fetchBill();
           } catch {
-            setPaymentStatus({ type: "error", message: "Payment verification failed. Please contact admin." });
+            setPaymentStatus({
+              type: "error",
+              message: "Payment verification failed. Please contact admin.",
+            });
           }
           setPaying(false);
         },
         modal: {
           ondismiss: () => {
             setPaying(false);
-            setPaymentStatus({ type: "info", message: "Payment was cancelled. You can try again." });
-          }
+            setPaymentStatus({
+              type: "info",
+              message: "Payment was cancelled. You can try again.",
+            });
+          },
         },
-        theme: { color: "#6366F1" }
+        theme: { color: "#881f42" },
       };
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", () => {
         setPaying(false);
-        setPaymentStatus({ type: "error", message: "Payment failed. Please try again." });
+        setPaymentStatus({
+          type: "error",
+          message: "Payment failed. Please try again.",
+        });
       });
       rzp.open();
     } catch (err) {
       setPaying(false);
-      setPaymentStatus({ type: "error", message: err.response?.data?.detail || "Could not initiate payment." });
+      setPaymentStatus({
+        type: "error",
+        message: err.response?.data?.detail || "Could not initiate payment.",
+      });
     }
   };
 
   const isPaid = bill?.status === "PAID";
 
   return (
-    <>
-      <header className="erp-topbar" style={{ paddingLeft: '24px', zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '32px', height: '32px',
-            background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-            borderRadius: '8px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
-          }}>
-            <FileText color="white" size={16} />
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <header
+        className="erp-topbar"
+        style={{
+          width: "100%",
+          padding: "0 32px",
+          zIndex: 10,
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(0,0,0,0.05)",
+          display: "flex",
+          alignItems: "center",
+          height: "72px",
+          position: "sticky",
+          top: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              background: "linear-gradient(135deg, #881f42, #6b1634)",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(136, 31, 66, 0.2)",
+            }}
+          >
+            <Shield color="white" size={20} />
           </div>
           <div>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--erp-dark)' }}>Brochure Fee Payment</span>
-            <span style={{ fontSize: '11px', color: 'var(--erp-text-muted)', display: 'block', marginTop: '-2px' }}>Fees & Billing Module</span>
+            <span
+              style={{
+                fontSize: "15px",
+                fontWeight: "800",
+                color: "#1e293b",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              PVG COET&M
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "#64748b",
+                display: "block",
+                marginTop: "-2px",
+                fontWeight: "600",
+              }}
+            >
+              Secure Payment Gateway
+            </span>
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <a href="/user" style={{ fontSize: '13px', color: 'var(--erp-primary)', fontWeight: '500', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ArrowLeft size={14} /> Student Portal
-          </a>
-        </div>
+        {/* Student Portal button removed as requested */}
       </header>
 
-      <main className="erp-main" style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '3rem' }}>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="erp-card" style={{ padding: '4rem', textAlign: 'center' }}>
-            <div style={{
-              width: '48px', height: '48px', margin: '0 auto 16px',
-              border: '3px solid var(--erp-border)', borderTopColor: '#6366F1',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite'
-            }} />
-            <p style={{ color: 'var(--erp-text-muted)', fontSize: '14px' }}>Loading bill details...</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && !loading && (
-          <div className="erp-card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <AlertCircle size={48} color="#EF4444" style={{ margin: '0 auto 16px' }} />
-            <h3 style={{ color: 'var(--erp-dark)', marginBottom: '8px', fontSize: '16px' }}>Something went wrong</h3>
-            <p style={{ color: 'var(--erp-text-muted)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>{error}</p>
-          </div>
-        )}
-
+      <main
+        className="erp-main"
+        style={{
+          maxWidth: "800px",
+          width: "95%",
+          margin: "0 auto",
+          paddingTop: "2rem",
+          paddingBottom: "2rem",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
         {/* Payment Status Alert */}
         {paymentStatus && (
           <div
             className={`erp-alert ${paymentStatus.type === "success" ? "erp-alert--success" : paymentStatus.type === "error" ? "erp-alert--danger" : "erp-alert--info"}`}
             style={{
-              marginBottom: '1.5rem',
-              display: 'flex', alignItems: 'center', gap: '10px',
-              borderRadius: '12px',
-              animation: 'slideDown 0.3s ease-out'
+              marginBottom: "2rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              borderRadius: "14px",
+              padding: "16px 20px",
+              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
+              animation: "slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+              border: "1px solid transparent",
             }}
           >
-            {paymentStatus.type === "success" ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-            <div>
-              <div style={{ fontWeight: '600' }}>{paymentStatus.message}</div>
+            {paymentStatus.type === "success" ? (
+              <CheckCircle size={22} />
+            ) : (
+              <AlertCircle size={22} />
+            )}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: "700", fontSize: "14px" }}>
+                {paymentStatus.message}
+              </div>
               {paymentStatus.type === "success" && (
-                <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>
-                  Your brochure fee has been recorded. You may now return to the Admission portal.
+                <div
+                  style={{ fontSize: "12px", marginTop: "4px", opacity: 0.9 }}
+                >
+                  Payment recorded successfully. Redirecting you back shortly.
                 </div>
               )}
             </div>
+            {(paymentStatus.type === "info" ||
+              paymentStatus.type === "error") && (
+              <div
+                style={{ fontSize: "10px", fontWeight: "700", opacity: 0.5 }}
+              >
+                AUTODISMISS
+              </div>
+            )}
           </div>
         )}
 
-        <style>{`@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-
-        {/* Bill Details Card */}
-        {bill && !loading && !error && (
-          <div className="erp-card" style={{
-            overflow: 'hidden',
-            borderRadius: '16px',
-            border: isPaid ? '1px solid #10B98133' : '1px solid #6366F133',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.06)'
-          }}>
-            {/* Header Banner */}
-            <div style={{
-              background: isPaid
-                ? 'linear-gradient(135deg, #10B981, #059669)'
-                : 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-              padding: '24px 28px',
-              color: 'white'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.85, fontWeight: '600' }}>
-                    Brochure Fee
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '4px', fontFamily: 'monospace' }}>
-                    ₹{Number(bill.amount).toLocaleString('en-IN')}
-                  </div>
-                </div>
-                <div style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  background: 'rgba(255,255,255,0.2)',
-                  backdropFilter: 'blur(10px)',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  letterSpacing: '0.05em'
-                }}>
-                  {isPaid ? "✓ PAID" : "UNPAID"}
-                </div>
-              </div>
+        {loading ? (
+          <div
+            className="erp-card"
+            style={{
+              padding: "4rem",
+              textAlign: "center",
+              borderRadius: "20px",
+            }}
+          >
+            <div
+              className="erp-spinner"
+              style={{
+                width: "40px",
+                height: "40px",
+                border: "3px solid #f1f5f9",
+                borderTopColor: "#881f42",
+                margin: "0 auto 1.5rem",
+              }}
+            />
+            <p style={{ color: "#64748b", fontWeight: "600" }}>
+              Securing connection...
+            </p>
+          </div>
+        ) : error ? (
+          <div
+            className="erp-card"
+            style={{
+              padding: "4rem",
+              textAlign: "center",
+              borderRadius: "20px",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                backgroundColor: "#fef2f2",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 1.5rem",
+              }}
+            >
+              <AlertCircle size={32} color="#ef4444" />
             </div>
-
-            {/* Bill Info */}
-            <div style={{ padding: '24px 28px' }}>
-              <div style={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr',
-                gap: '20px', marginBottom: '24px'
-              }}>
-                <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--erp-text-muted)', fontWeight: '600', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                    Academic Year
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--erp-dark)' }}>
-                    {bill.academic_year}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--erp-text-muted)', fontWeight: '600', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                    Fee Type
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--erp-dark)' }}>
-                    {bill.bill_type}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--erp-text-muted)', fontWeight: '600', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                    Student ID
-                  </div>
-                  <div style={{ fontSize: '13px', fontFamily: 'monospace', color: 'var(--erp-dark)', wordBreak: 'break-all' }}>
-                    {bill.user_id}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--erp-text-muted)', fontWeight: '600', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                    Bill ID
-                  </div>
-                  <div style={{ fontSize: '13px', fontFamily: 'monospace', color: 'var(--erp-dark)', wordBreak: 'break-all' }}>
-                    {bill.bill_id}
-                  </div>
-                </div>
-              </div>
-
-              {/* Pay Button or Paid Confirmation */}
-              {isPaid ? (
-                <div style={{
-                  background: '#F0FDF4',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  textAlign: 'center',
-                  border: '1px solid #BBF7D0'
-                }}>
-                  <CheckCircle size={32} color="#10B981" style={{ margin: '0 auto 8px' }} />
-                  <div style={{ fontWeight: '700', color: '#065F46', fontSize: '15px' }}>
-                    Payment Complete
-                  </div>
-                  <div style={{ color: '#047857', fontSize: '13px', marginTop: '4px' }}>
-                    This brochure fee has already been paid. You can safely return to the Admission portal.
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <button
-                    onClick={handlePay}
-                    disabled={paying}
-                    className="erp-btn erp-btn--primary"
+            <h3
+              style={{
+                color: "#1e293b",
+                fontSize: "1.25rem",
+                fontWeight: "800",
+                marginBottom: "0.75rem",
+              }}
+            >
+              Unable to load payment
+            </h3>
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "0.9375rem",
+                lineHeight: "1.6",
+                maxWidth: "400px",
+                margin: "0 auto",
+              }}
+            >
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: "2rem",
+                color: "#881f42",
+                fontWeight: "700",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Retry Connection
+            </button>
+          </div>
+        ) : (
+          bill && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: "2rem",
+                animation: "fadeIn 0.6s ease-out",
+              }}
+            >
+              <div
+                className="erp-card"
+                style={{
+                  overflow: "hidden",
+                  borderRadius: "24px",
+                  border: "1px solid rgba(255, 255, 255, 0.6)",
+                  background: "rgba(255, 255, 255, 0.7)",
+                  backdropFilter: "blur(20px)",
+                  boxShadow:
+                    "0 25px 50px -12px rgba(136, 31, 66, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.05)",
+                  display: "grid",
+                  gridTemplateColumns: "minmax(300px, 1.2fr) 1fr",
+                }}
+              >
+                {/* Left Side: Payment Summary */}
+                <div
+                  style={{
+                    padding: "3rem",
+                    borderRight: "1px solid rgba(136, 31, 66, 0.1)",
+                    background: "rgba(255, 255, 255, 0.5)",
+                  }}
+                >
+                  <div
                     style={{
-                      width: '100%',
-                      padding: '14px 24px',
-                      fontSize: '15px',
-                      fontWeight: '700',
-                      background: paying ? '#9CA3AF' : 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      color: 'white',
-                      cursor: paying ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      transition: 'all 0.2s ease',
-                      boxShadow: paying ? 'none' : '0 4px 14px rgba(99, 102, 241, 0.4)'
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      marginBottom: "2.5rem",
                     }}
                   >
-                    <CreditCard size={18} />
-                    {paying ? "Processing Payment..." : `Pay ₹${Number(bill.amount).toLocaleString('en-IN')} Now`}
-                  </button>
+                    <FileText size={20} color="#881f42" />
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: "800",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        color: "#64748b",
+                      }}
+                    >
+                      Order Summary
+                    </span>
+                  </div>
 
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: '6px', marginTop: '16px',
-                    fontSize: '12px', color: 'var(--erp-text-muted)'
-                  }}>
-                    <Shield size={14} />
-                    Secured by Razorpay · 256-bit SSL Encrypted
+                  <h2
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "900",
+                      color: "#1e293b",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    ₹{Number(bill.amount).toLocaleString("en-IN")}
+                  </h2>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      marginBottom: "2.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: isPaid ? "#10b981" : "#f59e0b",
+                      }}
+                    ></div>
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        fontWeight: "700",
+                        color: isPaid ? "#10b981" : "#f59e0b",
+                      }}
+                    >
+                      {isPaid ? "Payment Completed" : "Payment Required"}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gap: "1.5rem" }}>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          fontWeight: "800",
+                          textTransform: "uppercase",
+                          color: "#94a3b8",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Academic Year
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.9375rem",
+                          fontWeight: "700",
+                          color: "#334155",
+                        }}
+                      >
+                        {bill.academic_year}
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          fontWeight: "800",
+                          textTransform: "uppercase",
+                          color: "#94a3b8",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Service Type
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.9375rem",
+                          fontWeight: "700",
+                          color: "#334155",
+                        }}
+                      >
+                        {bill.bill_type} (Application Fee)
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          fontWeight: "800",
+                          textTransform: "uppercase",
+                          color: "#94a3b8",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Student Reference
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.875rem",
+                          fontWeight: "600",
+                          color: "#64748b",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {bill.user_id}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
+
+                {/* Right Side: Action Area */}
+                <div
+                  style={{
+                    padding: "3rem",
+                    backgroundColor: "rgba(250, 251, 252, 0.6)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isPaid ? (
+                    <div style={{ textAlign: "center" }}>
+                      <div
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          backgroundColor: "#ecfdf5",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto 1.5rem",
+                          boxShadow: "0 0 0 8px #f0fdf4",
+                        }}
+                      >
+                        <CheckCircle size={40} color="#10b981" />
+                      </div>
+                      <h3
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "800",
+                          color: "#065f46",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        Verified Success
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "0.875rem",
+                          color: "#047857",
+                          marginBottom: "2rem",
+                          lineHeight: "1.6",
+                        }}
+                      >
+                        Your application brochure fee has been cleared.
+                      </p>
+
+                      <button
+                        onClick={() => (window.location.href = ADMISSION_URL)}
+                        style={{
+                          width: "100%",
+                          padding: "16px",
+                          borderRadius: "14px",
+                          background: "#10b981",
+                          color: "white",
+                          border: "none",
+                          fontWeight: "800",
+                          fontSize: "0.9375rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "12px",
+                          boxShadow: "0 10px 15px -3px rgba(16, 185, 129, 0.2)",
+                        }}
+                      >
+                        {countdown !== null
+                          ? `Redirecting in ${countdown}s...`
+                          : "Return to Portal"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ marginBottom: "2rem" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          <Shield size={16} color="#881f42" />
+                          <span
+                            style={{
+                              fontSize: "0.875rem",
+                              fontWeight: "700",
+                              color: "#475569",
+                            }}
+                          >
+                            Secure Checkout
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: "#64748b",
+                            lineHeight: "1.6",
+                          }}
+                        >
+                          Click below to initiate a secure transaction via
+                          Razorpay. All data is encrypted.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={handlePay}
+                        disabled={paying}
+                        style={{
+                          width: "100%",
+                          padding: "16px",
+                          background:
+                            "linear-gradient(135deg, #881f42, #6b1634)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "14px",
+                          fontWeight: "800",
+                          fontSize: "1rem",
+                          cursor: paying ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "12px",
+                          boxShadow: "0 10px 20px -5px rgba(136, 31, 66, 0.4)",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseOver={(e) => {
+                          if (!paying)
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                        }}
+                      >
+                        {paying ? (
+                          <div
+                            className="erp-spinner"
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              border: "2px solid white",
+                              borderTopColor: "transparent",
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <CreditCard size={20} /> Pay Securely
+                          </>
+                        )}
+                      </button>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          gap: "20px",
+                          marginTop: "2.5rem",
+                          opacity: 0.5,
+                        }}
+                      >
+                        <img
+                          src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+                          height="14"
+                          alt="PayPal"
+                        />
+
+                        <img
+                          src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                          height="14"
+                          alt="Mastercard"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <footer
+                style={{ textAlign: "center", padding: "1rem", opacity: 0.6 }}
+              >
+                <p style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                  Powered by PVG's COET Fees & Billing Module ©{" "}
+                  {new Date().getFullYear()}
+                </p>
+              </footer>
             </div>
-          </div>
+          )
         )}
       </main>
-    </>
+
+      <style>{`
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .erp-spinner { border: 2px solid rgba(0,0,0,0.1); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+          .erp-card { grid-template-columns: 1fr !important; }
+          .erp-card \u003e div:first-child { border-right: none !important; border-bottom: 1px solid #f1f5f9 !important; padding: 2rem !important; }
+          .erp-card \u003e div:last-child { padding: 2rem !important; }
+        }
+      `}</style>
+    </div>
   );
 }

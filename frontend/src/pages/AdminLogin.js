@@ -36,7 +36,7 @@ export default function AdminLogin() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        backgroundColor: "#0f2942",
+        backgroundColor: "#4a0e23",
         fontFamily: "sans-serif",
       }}
       data-testid="admin-login-page"
@@ -93,7 +93,7 @@ export default function AdminLogin() {
             style={{
               display: "flex",
               alignItems: "center",
-              color: "#1e3a8a",
+              color: "#881f42",
               fontSize: "1.25rem",
               fontWeight: "600",
               marginBottom: "2rem",
@@ -122,7 +122,7 @@ export default function AdminLogin() {
                 htmlFor="email"
                 style={{
                   display: "block",
-                  color: "#1e3a8a",
+                  color: "#881f42",
                   fontSize: "0.85rem",
                   fontWeight: "600",
                   marginBottom: "0.5rem",
@@ -147,7 +147,7 @@ export default function AdminLogin() {
                   fontSize: "0.95rem",
                   outline: "none",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#1e3a8a")}
+                onFocus={(e) => (e.target.style.borderColor = "#881f42")}
                 onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               />
             </div>
@@ -157,7 +157,7 @@ export default function AdminLogin() {
                 htmlFor="password"
                 style={{
                   display: "block",
-                  color: "#1e3a8a",
+                  color: "#881f42",
                   fontSize: "0.85rem",
                   fontWeight: "600",
                   marginBottom: "0.5rem",
@@ -182,7 +182,7 @@ export default function AdminLogin() {
                   fontSize: "0.95rem",
                   outline: "none",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#1e3a8a")}
+                onFocus={(e) => (e.target.style.borderColor = "#881f42")}
                 onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               />
             </div>
@@ -196,7 +196,7 @@ export default function AdminLogin() {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                backgroundColor: "#1e3a8a",
+                backgroundColor: "#881f42",
                 color: "white",
                 padding: "12px",
                 borderRadius: "6px",
@@ -208,10 +208,10 @@ export default function AdminLogin() {
                 transition: "background-color 0.2s",
               }}
               onMouseOver={(e) =>
-                !loading && (e.currentTarget.style.backgroundColor = "#172554")
+                !loading && (e.currentTarget.style.backgroundColor = "#6b1634")
               }
               onMouseOut={(e) =>
-                !loading && (e.currentTarget.style.backgroundColor = "#1e3a8a")
+                !loading && (e.currentTarget.style.backgroundColor = "#881f42")
               }
             >
               <LogIn

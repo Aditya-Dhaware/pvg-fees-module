@@ -13,7 +13,19 @@ export default function RefundManagement() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
-  const [actionError, setActionError] = useState("");
+  const [actionError, setActionError] = useState({}); // { refundId: errorMsg }
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: '' }
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => { loadYears(); }, []);
   useEffect(() => { 
@@ -29,7 +41,7 @@ export default function RefundManagement() {
     setLoading(true);
     try {
       const params = academicYear ? `?academic_year=${academicYear}` : "";
-      const { data } = await api.get(`/refunds${params}`);
+      const { data } = await api.get(`/refunds/${params}`);
       setRefunds(data);
     } catch (err) { console.error(err); }
     setLoading(false);
@@ -40,13 +52,14 @@ export default function RefundManagement() {
     setCreateLoading(true);
     setCreateError("");
     try {
-      await api.post("/refunds", {
+      await api.post("/refunds/", {
         payment_id: createForm.payment_id,
         amount: parseFloat(createForm.amount),
         reason: createForm.reason
       });
       setShowCreate(false);
       setCreateForm({ payment_id: "", amount: "", reason: "" });
+      showToast("Refund request created successfully!");
       loadRefunds();
     } catch (err) {
       setCreateError(err.response?.data?.detail || "Failed to create refund");
@@ -56,13 +69,21 @@ export default function RefundManagement() {
 
   const handleUpdateStatus = async (refundId, status) => {
     setActionLoading(refundId);
-    setActionError("");
+    setActionError(prev => ({ ...prev, [refundId]: null }));
     try {
-      await api.put(`/refunds/${refundId}`, { status });
+      const { data } = await api.put(`/refunds/${refundId}`, { status });
+      if (status === 'REFUNDED') {
+        const msg = data.razorpay_refund_id 
+          ? `Refund of ₹${data.amount} successful! ID: ${data.razorpay_refund_id}`
+          : "Refund approved successfully!";
+        showToast(msg);
+      } else {
+        showToast("Refund request rejected.");
+      }
       loadRefunds();
     } catch (err) {
       console.error(err);
-      setActionError(err.response?.data?.detail || "Failed to update refund status");
+      setActionError(prev => ({ ...prev, [refundId]: err.response?.data?.detail || "Failed to update" }));
     }
     setActionLoading(null);
   };
@@ -75,7 +96,38 @@ export default function RefundManagement() {
 
   return (
     <AdminLayout title="Refund Management">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '12px 24px',
+          backgroundColor: toast.type === 'error' ? 'var(--erp-danger)' : 'var(--erp-success)',
+          color: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          <div style={{ fontWeight: 'bold' }}>{toast.type === 'error' ? 'Error' : 'Success'}!</div>
+          <div style={{ fontSize: '0.875rem' }}>{toast.message}</div>
+          <button onClick={() => setToast(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', marginLeft: '10px', opacity: 0.8 }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
         <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--erp-dark)' }}>Refunds</h2>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <select 
@@ -129,17 +181,13 @@ export default function RefundManagement() {
 
       <div className="erp-card">
         <div style={{ overflowX: 'auto' }}>
-          {actionError && (
-            <div className="erp-alert erp-alert--danger" style={{ margin: '1rem' }}>
-              Error: {actionError}
-            </div>
-          )}
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ borderBottom: '1px solid var(--erp-border)', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--erp-text-muted)' }}>
               <tr>
                 <th style={{ padding: '12px 16px' }}>Refund ID</th>
                 <th style={{ padding: '12px 16px' }}>User ID</th>
                 <th style={{ padding: '12px 16px' }}>Program</th>
+                <th style={{ padding: '12px 16px' }}>Type</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>Amount</th>
                 <th style={{ padding: '12px 16px' }}>Reason</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Status</th>
@@ -149,15 +197,18 @@ export default function RefundManagement() {
             </thead>
             <tbody style={{ fontSize: '0.875rem' }}>
               {loading ? (
-                <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--erp-text-muted)' }}>Loading refunds...</td></tr>
+                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--erp-text-muted)' }}>Loading refunds...</td></tr>
               ) : refunds.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--erp-text-muted)' }}>No refunds found</td></tr>
+                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--erp-text-muted)' }}>No refunds found</td></tr>
               ) : (
                 refunds.map((r) => (
                   <tr key={r.refund_id} style={{ borderBottom: '1px solid var(--erp-border)' }}>
                     <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: 'var(--erp-dark)' }}>{r.refund_id.slice(0, 8)}...</td>
                     <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: 'var(--erp-text-muted)' }}>{r.user_id.slice(0, 8)}...</td>
                     <td style={{ padding: '12px 16px' }}>{r.program_name || "—"}</td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <span className="erp-badge erp-badge--primary">{r.bill_type}</span>
+                    </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>₹{Number(r.amount).toLocaleString('en-IN')}</td>
                     <td style={{ padding: '12px 16px', color: 'var(--erp-text-muted)', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.reason}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -165,13 +216,26 @@ export default function RefundManagement() {
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                       {r.status === "PENDING" && (
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button disabled={actionLoading === r.refund_id} className="erp-btn erp-btn--success" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handleUpdateStatus(r.refund_id, "REFUNDED")}>
-                            {actionLoading === r.refund_id ? "..." : "Approve"}
-                          </button>
-                          <button disabled={actionLoading === r.refund_id} className="erp-btn erp-btn--danger" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handleUpdateStatus(r.refund_id, "REJECTED")}>
-                            Reject
-                          </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button disabled={actionLoading === r.refund_id} className="erp-btn erp-btn--success" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handleUpdateStatus(r.refund_id, "REFUNDED")}>
+                              {actionLoading === r.refund_id ? "..." : "Approve"}
+                            </button>
+                            <button disabled={actionLoading === r.refund_id} className="erp-btn erp-btn--danger" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handleUpdateStatus(r.refund_id, "REJECTED")}>
+                              Reject
+                            </button>
+                          </div>
+                          {actionError[r.refund_id] && (
+                            <div style={{ fontSize: '10px', color: 'var(--erp-danger)', maxWidth: '150px', lineHeight: '1.2' }}>
+                              {actionError[r.refund_id]}
+                              <button 
+                                onClick={() => setActionError(prev => ({ ...prev, [r.refund_id]: null }))}
+                                style={{ background: 'none', border: 'none', color: 'var(--erp-primary)', cursor: 'pointer', marginLeft: '4px', textDecoration: 'underline' }}
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </td>

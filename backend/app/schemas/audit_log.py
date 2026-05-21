@@ -1,6 +1,9 @@
 from datetime import datetime
-from typing import Optional, Any
-from pydantic import BaseModel
+from typing import Any, Optional
+
+# pyrefly: ignore [missing-import]
+from pydantic import BaseModel, ConfigDict
+
 
 class AuditLogBase(BaseModel):
     event_name: str
@@ -8,9 +11,9 @@ class AuditLogBase(BaseModel):
     description: Optional[str] = None
     log_metadata: Optional[Any] = None
 
+
 class AuditLog(AuditLogBase):
     log_id: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

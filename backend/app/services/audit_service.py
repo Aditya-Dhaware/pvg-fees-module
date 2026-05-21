@@ -1,19 +1,19 @@
-import uuid
-import json
 import logging
-from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.audit_log import AuditLog
+import uuid
+
 from app.db.session import AsyncSessionLocal
+from app.models.audit_log import AuditLog
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
+
 async def log_event(
-    event_name: str, 
-    status: str, 
-    description: str = None, 
+    event_name: str,
+    status: str,
+    description: str = None,
     metadata: dict = None,
-    db: AsyncSession = None
+    db: AsyncSession = None,
 ):
     """Insert an audit log entry into the audit_logs table."""
     log_entry = AuditLog(
@@ -21,9 +21,9 @@ async def log_event(
         event_name=event_name,
         status=status,
         description=description,
-        log_metadata=metadata
+        log_metadata=metadata,
     )
-    
+
     if db:
         db.add(log_entry)
         await db.flush()

@@ -1,86 +1,365 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, CreditCard, RefreshCw, Receipt, LogOut, Menu, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  CreditCard,
+  RefreshCw,
+  Receipt,
+  LogOut,
+  Menu,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 
 export default function AdminLayout({ children, title }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = "/";
+    window.location.href = process.env.REACT_APP_AUTH_FRONTEND_URL || "/";
   };
 
   const navItems = [
-    { key: "dashboard", label: "Dashboard", path: "/admin", icon: LayoutDashboard },
+    {
+      key: "dashboard",
+      label: "Dashboard",
+      path: "/admin",
+      icon: LayoutDashboard,
+    },
     { key: "bills", label: "Bills", path: "/admin/bills", icon: FileText },
-    { key: "payments", label: "Payments", path: "/admin/payments", icon: CreditCard },
-    { key: "refunds", label: "Refunds", path: "/admin/refunds", icon: RefreshCw },
-    { key: "receipts", label: "Receipts", path: "/admin/receipts", icon: Receipt },
+    {
+      key: "payments",
+      label: "Payments",
+      path: "/admin/payments",
+      icon: CreditCard,
+    },
+    {
+      key: "refunds",
+      label: "Refunds",
+      path: "/admin/refunds",
+      icon: RefreshCw,
+    },
+    {
+      key: "receipts",
+      label: "Receipts",
+      path: "/admin/receipts",
+      icon: Receipt,
+    },
   ];
 
-  // Re-run ERP theme scripts whenever route changes to bind sidebar toggles, etc.
   useEffect(() => {
-    if (window.ERP && window.ERP.Sidebar) {
-      // Rebind if necessary, though erp-theme.js should do it globally
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 1024;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+      else setIsSidebarOpen(true);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close sidebar on route change (for mobile)
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isMobile]);
 
   return (
-    <>
-      <aside className="erp-sidebar">
-        <div className="erp-sidebar__brand">
-          <div style={{ backgroundColor: 'white', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      className={`erp-admin-wrapper ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
+    >
+      {/* Mobile Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="erp-sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 99,
+            backdropFilter: "blur(4px)",
+            transition: "opacity 0.3s ease",
+          }}
+        />
+      )}
+
+      <aside
+        className={`erp-sidebar ${isMobile && isSidebarOpen ? "erp-sidebar--mobile-open" : ""}`}
+        style={{
+          zIndex: 100,
+          width: isSidebarOpen ? "260px" : "0px",
+          overflow: "hidden",
+          transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <div className="erp-sidebar__brand" style={{ minWidth: "260px" }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, white, #f1f5f9)",
+              borderRadius: "12px",
+              padding: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+            }}
+          >
             <ShieldCheck color="var(--erp-primary)" size={24} />
           </div>
           <div className="erp-sidebar__brand-text" style={{ marginLeft: 12 }}>
-            <h2>PVG COET&M</h2>
-            <span>Fees & Billing</span>
+            <h2
+              style={{
+                fontSize: "1.125rem",
+                fontWeight: "800",
+                letterSpacing: "-0.025em",
+              }}
+            >
+              PVGCOSC
+            </h2>
+            <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
+              Fees & Billing
+            </span>
           </div>
+          {isMobile && (
+            <button
+              className="erp-sidebar__close-btn"
+              onClick={() => setIsSidebarOpen(false)}
+              style={{
+                marginLeft: "auto",
+                background: "none",
+                border: "none",
+                color: "white",
+                cursor: "pointer",
+              }}
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
-        <nav className="erp-sidebar__nav">
-          <div className="erp-nav-label">Main Menu</div>
+        <nav className="erp-sidebar__nav" style={{ minWidth: "260px" }}>
+          <div
+            className="erp-nav-label"
+            style={{
+              opacity: 0.5,
+              fontSize: "0.65rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              padding: "0 12px 12px",
+            }}
+          >
+            Main Menu
+          </div>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== "/admin" &&
+                location.pathname.startsWith(item.path));
             return (
-              <Link 
-                to={item.path} 
-                key={item.key} 
+              <Link
+                to={item.path}
+                key={item.key}
                 className={`erp-nav-item ${isActive ? "erp-nav-item--active" : ""}`}
+                style={{
+                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  borderRadius: "10px",
+                  margin: "2px 0",
+                }}
               >
-                <item.icon size={16} style={{ marginRight: '12px' }} />
-                <span className="erp-nav-item__text">{item.label}</span>
+                <item.icon size={18} style={{ marginRight: "12px" }} />
+                <span
+                  className="erp-nav-item__text"
+                  style={{ fontWeight: isActive ? "700" : "500" }}
+                >
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      width: "4px",
+                      height: "16px",
+                      backgroundColor: "white",
+                      borderRadius: "4px",
+                    }}
+                  />
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="erp-sidebar__footer">
-          <div className="erp-avatar erp-avatar--md bg-blue-100 text-blue-800 font-bold">
+        <div
+          className="erp-sidebar__footer"
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            paddingTop: "1.5rem",
+            minWidth: "260px",
+          }}
+        >
+          <div className="erp-avatar erp-avatar--md bg-white/10 text-white font-bold backdrop-blur-md border border-white/20">
             {user?.email?.charAt(0).toUpperCase() || "A"}
           </div>
           <div className="erp-sidebar__user-info">
-            <p style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user?.email || "Admin User"}</p>
-            <span>Administrator</span>
+            <p style={{ fontWeight: "600", fontSize: "0.875rem" }}>
+              {user?.email?.split("@")[0] || "Admin"}
+            </p>
+            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
+              Administrator
+            </span>
           </div>
-          <button onClick={handleLogout} className="erp-sidebar__logout border-0 bg-transparent cursor-pointer" title="Logout">
-            <LogOut size={16} color="var(--erp-text-muted)" />
+          <button
+            onClick={handleLogout}
+            className="erp-sidebar__logout border-0 bg-white/5 hover:bg-white/10 p-2 rounded-lg cursor-pointer transition-colors"
+            title="Logout"
+          >
+            <LogOut size={16} color="white" />
           </button>
         </div>
       </aside>
 
-      <header className="erp-topbar">
-        <button className="erp-topbar__btn" data-erp-sidebar-toggle>
-          <Menu size={20} />
-        </button>
-        <nav className="erp-topbar__breadcrumb" data-erp-breadcrumb></nav>
-      </header>
+      <div
+        className="erp-main-container"
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          width: isSidebarOpen ? "calc(100% - 260px)" : "100%",
+          transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <header
+          className="erp-topbar"
+          style={{
+            backdropFilter: "blur(12px)",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            borderBottom: "1px solid var(--erp-border)",
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+            padding: "0 1.5rem",
+            paddingLeft: "17.8rem",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <button
+            className="erp-topbar__btn"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            style={{
+              backgroundColor: "white",
+              border: "1px solid var(--erp-border)",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            }}
+          >
+            <Menu size={20} />
+          </button>
 
-      <main className="erp-main" data-erp-page={`Admin / ${title}`}>
-        {children}
-      </main>
-    </>
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.875rem",
+                color: "var(--erp-text-muted)",
+                fontWeight: "500",
+              }}
+            >
+              {new Date().toLocaleDateString("en-IN", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
+            </div>
+          </div>
+        </header>
+
+        <main className="erp-main" style={{ padding: "1rem 1.5rem" }}>
+          {children}
+        </main>
+      </div>
+
+      <style>{`
+        .erp-admin-wrapper {
+          display: flex;
+          min-height: 100vh;
+          background-color: #f8fafc;
+        }
+        
+        .erp-sidebar {
+          background: linear-gradient(180deg, var(--erp-primary) 0%, #6b1634 100%);
+          color: white;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .erp-sidebar__brand {
+          display: flex;
+          align-items: center;
+          padding: 1.5rem;
+        }
+
+        .erp-sidebar__nav {
+          flex: 1;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .erp-nav-item {
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          color: rgba(255,255,255,0.8);
+          text-decoration: none;
+        }
+
+        .erp-sidebar__footer {
+          display: flex;
+          align-items: center;
+          padding: 1.5rem;
+          gap: 12px;
+        }
+
+        @media (max-width: 1024px) {
+          .erp-sidebar {
+            position: fixed !important;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            width: 260px !important;
+          }
+          .erp-sidebar--mobile-open {
+            transform: translateX(0);
+          }
+        }
+        
+        .erp-nav-item:hover {
+          background-color: rgba(255,255,255,0.1);
+          color: white;
+          transform: translateX(4px);
+        }
+        
+        .erp-nav-item--active {
+          background-color: rgba(255,255,255,0.15);
+          color: white;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+      `}</style>
+    </div>
   );
 }

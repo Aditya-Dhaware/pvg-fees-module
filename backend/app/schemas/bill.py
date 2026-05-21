@@ -1,8 +1,11 @@
-from uuid import UUID
 from datetime import datetime
-from typing import Optional
 from decimal import Decimal
-from pydantic import BaseModel
+from typing import Optional
+from uuid import UUID
+
+# pyrefly: ignore [missing-import]
+from pydantic import BaseModel, ConfigDict
+
 
 class BillBase(BaseModel):
     user_id: str
@@ -16,17 +19,21 @@ class BillBase(BaseModel):
     status: str = "UNPAID"
     installment_number: Optional[int] = None
     total_installments: Optional[int] = None
+    due_date: Optional[datetime] = None
+    paid_at: Optional[datetime] = None
+
 
 class BillCreate(BillBase):
     pass
+
 
 class Bill(BillBase):
     bill_id: UUID
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PendingBillsResponse(BaseModel):
     bills: list[Bill]
