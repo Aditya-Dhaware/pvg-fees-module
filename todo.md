@@ -57,6 +57,13 @@ These items are **the same for every module**. See `docs/PROJECT_CONTEXT.md` for
 ### H5. Naming consistency (rename to canonical)
 **Why:** You're the most cross-module API surface — Admission, Placement (later), every payment flow calls you. Inconsistent field names break clients silently. See full naming rules in `docs/PROJECT_CONTEXT.md`.
 
+**Filename + folder-name conventions — audit the WHOLE repo, not just the renames below.** This is the *same principle every module follows*; full table in the "Naming conventions" section of `docs/PROJECT_CONTEXT.md`. Walk the tree file-by-file and rename anything that doesn't match:
+- **Folders:** all lowercase, **no spaces** — `backend/`, `frontend/`, `docs/` (never `sis-frontend/`, `placement-frontend/`, `Requirement Documents/`). Python packages `snake_case`. No double-nested same-name folders (`x/x/`).
+- **Python files:** `snake_case.py` (e.g. `student_service.py`); classes inside are `PascalCase`.
+- **React components:** `PascalCase.jsx`/`.tsx` (e.g. `AuthGate.jsx`). **JS utilities:** `camelCase.js` (e.g. `formatDate.js`). **Config files:** lowercase (`vite.config.js`, `tailwind.config.js`).
+- **Test files:** `test_<unit>.py` (Python) / `<Component>.test.tsx` (JS).
+- **Same concept = same name everywhere** at the wire: `student_id` (never `studentId`/`sid`), `user_id`, `department_id`. DB column name = API JSON key, both `snake_case`.
+
 **Renames to apply:**
 
 | Current | Target | Notes |
