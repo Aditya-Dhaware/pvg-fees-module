@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -26,18 +27,23 @@ async def send_payment_webhook(payload: dict):
 async def send_sis_fee_update(
     user_id: str, total_fees: float, total_paid: float, total_pending: float
 ):
+    logger.info(f"[SIS PATCH] Delaying update for user {user_id} by 3 seconds...")
+    await asyncio.sleep(3.0)
     sis_base_url = settings.SIS_MODULE_URL
     patch_url = f"{sis_base_url}/api/v1/students/{user_id}/fees"
     payload = {
-        "user_id": user_id,
+        "student_id": user_id,
         "total_fees": total_fees,
         "total_paid": total_paid,
         "total_pending": total_pending,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    headers = {
+        "X-SIS-API-Key": settings.SIS_API_KEY,
+        "Content-Type": "application/json"
     }
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.patch(patch_url, json=payload, timeout=5.0)
+            resp = await client.patch(patch_url, json=payload, headers=headers, timeout=5.0)
             logger.info(
                 f"[SIS PATCH] Sent fee update to {patch_url}. Response: {resp.status_code}"
             )

@@ -52,6 +52,7 @@ class Settings:
         "ADMISSION_INTEGRATION_SECRET", "SUPER_SECRET_TOKEN"
     )
     SIS_MODULE_URL: str = os.environ.get("SIS_MODULE_URL", "http://localhost:8002")
+    SIS_API_KEY: str = os.environ.get("SIS_API_KEY", "College_ERP_Backend_Secure_2026")
 
     NOTIFICATION_MODULE_URL: str = os.environ.get(
         "NOTIFICATION_MODULE_URL",

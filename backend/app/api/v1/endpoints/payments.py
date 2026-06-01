@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
-from app.api import deps
+from app.dependencies import auth as deps
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.admin import AdminUser
@@ -285,32 +285,19 @@ async def verify_payment(
     if bill.bill_type == "ACADEMIC":
         # Fix deadlock: Compute summary within the open database transaction synchronously
         # then pass the computed values to the external webhook background task.
-        # Compute summary using actual successful payments for total_paid
-        paid_payments_res = await db.execute(
-            select(Payment)
-            .join(Bill, Payment.bill_id == Bill.bill_id)
-            .where(
-                and_(
-                    Bill.user_id == payment.user_id,
-                    Bill.bill_type == "ACADEMIC",
-                    Payment.status == "SUCCESS",
-                )
-            )
-        )
-        total_paid = sum(float(p.amount) for p in paid_payments_res.scalars().all())
-
-        pending_bills_res = await db.execute(
+        # Compute summary by querying all academic bills for the user
+        bills_res = await db.execute(
             select(Bill).where(
                 and_(
                     Bill.user_id == payment.user_id,
                     Bill.bill_type == "ACADEMIC",
-                    Bill.status == "UNPAID",
                 )
             )
         )
-        total_pending = sum(float(b.amount) for b in pending_bills_res.scalars().all())
-
-        total_fees = total_paid + total_pending
+        all_bills = bills_res.scalars().all()
+        total_fees = sum(float(b.amount) for b in all_bills)
+        total_paid = sum(float(b.amount) for b in all_bills if b.status == "PAID")
+        total_pending = sum(float(b.amount) for b in all_bills if b.status == "UNPAID")
 
         # Send webhook to Admission Module
         background_tasks.add_task(webhook_service.send_payment_webhook, webhook_payload)
@@ -479,32 +466,19 @@ async def razorpay_webhook(
         background_tasks.add_task(webhook_service.send_payment_webhook, webhook_payload)
 
     if bill.bill_type == "ACADEMIC":
-        # Compute summary using actual successful payments for total_paid
-        paid_payments_res = await db.execute(
-            select(Payment)
-            .join(Bill, Payment.bill_id == Bill.bill_id)
-            .where(
-                and_(
-                    Bill.user_id == payment.user_id,
-                    Bill.bill_type == "ACADEMIC",
-                    Payment.status == "SUCCESS",
-                )
-            )
-        )
-        total_paid = sum(float(p.amount) for p in paid_payments_res.scalars().all())
-
-        pending_bills_res = await db.execute(
+        # Compute summary by querying all academic bills for the user
+        bills_res = await db.execute(
             select(Bill).where(
                 and_(
                     Bill.user_id == payment.user_id,
                     Bill.bill_type == "ACADEMIC",
-                    Bill.status == "UNPAID",
                 )
             )
         )
-        total_pending = sum(float(b.amount) for b in pending_bills_res.scalars().all())
-
-        total_fees = total_paid + total_pending
+        all_bills = bills_res.scalars().all()
+        total_fees = sum(float(b.amount) for b in all_bills)
+        total_paid = sum(float(b.amount) for b in all_bills if b.status == "PAID")
+        total_pending = sum(float(b.amount) for b in all_bills if b.status == "UNPAID")
 
         # Send webhook to Admission Module
         background_tasks.add_task(webhook_service.send_payment_webhook, webhook_payload)

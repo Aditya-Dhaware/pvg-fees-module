@@ -107,3 +107,11 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+/* Cancel erp-theme margin-left / margin-top on .erp-main ONLY inside the
+   admin layout — UserPortal & BrochurePayment use margin:0 auto and must
+   NOT be affected here */
+.erp-admin-wrapper .erp-main {
+  margin-left: 0 !important;
+  margin-top:  0 !important;
+}

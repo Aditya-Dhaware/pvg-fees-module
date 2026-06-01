@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from app.api import deps
+from app.dependencies import auth as deps
 from app.db.session import get_db
 from app.models.admin import AdminUser
 from app.models.bill import Bill

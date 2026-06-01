@@ -204,7 +204,7 @@ export default function BrochurePayment() {
                 letterSpacing: "-0.01em",
               }}
             >
-              PVG COET&M
+              PVG's College Of Science & Commerce
             </span>
             <span
               style={{
@@ -707,7 +707,7 @@ export default function BrochurePayment() {
                 style={{ textAlign: "center", padding: "1rem", opacity: 0.6 }}
               >
                 <p style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                  Powered by PVG's COET Fees & Billing Module ©{" "}
+                  Powered by PVG's Colllege Of Science & Commerce's Fees & Billing Module ©{" "}
                   {new Date().getFullYear()}
                 </p>
               </footer>

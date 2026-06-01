@@ -1,6 +1,6 @@
 import logging
 
-from app.api import deps
+from app.dependencies import auth as deps
 from app.core import security
 from app.db.session import get_db
 from app.models.admin import AdminUser

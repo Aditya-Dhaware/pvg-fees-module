@@ -193,7 +193,7 @@ export default function BillManagement() {
                 </div>
                 <form onSubmit={handleGenerate}>
                   <div className="erp-form-group">
-                    <label>User ID (UUID)</label>
+                    <label>User ID</label>
                     <input
                       className="erp-form-control"
                       value={genForm.user_id}

@@ -14,7 +14,7 @@ import {
   Download,
   ReceiptText,
   LayoutDashboard,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
@@ -36,7 +36,10 @@ export default function UserPortal() {
 
   // Auto-dismiss payment status after 5 seconds if it's info or error
   useEffect(() => {
-    if (paymentStatus && (paymentStatus.type === "info" || paymentStatus.type === "error")) {
+    if (
+      paymentStatus &&
+      (paymentStatus.type === "info" || paymentStatus.type === "error")
+    ) {
       const timer = setTimeout(() => setPaymentStatus(null), 5000);
       return () => clearTimeout(timer);
     }
@@ -77,7 +80,7 @@ export default function UserPortal() {
       console.log("Auto-fetching bills from URL:", defaultUserId);
       setUserId(defaultUserId);
       lookupBills(defaultUserId);
-    } else if (user && user.role === 'student') {
+    } else if (user && user.role === "student") {
       const studentId = user.id || user.email;
       if (studentId) {
         console.log("Auto-fetching bills for logged-in student:", studentId);
@@ -188,21 +191,28 @@ export default function UserPortal() {
   const totalPaid = paidBills.reduce((sum, b) => sum + Number(b.amount), 0);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", backgroundImage: "radial-gradient(at 0% 0%, hsla(342,63%,33%,0.05) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(342,63%,33%,0.02) 0, transparent 50%)" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#f8fafc",
+        backgroundImage:
+          "radial-gradient(at 0% 0%, hsla(342,63%,33%,0.05) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(342,63%,33%,0.02) 0, transparent 50%)",
+      }}
+    >
       <header
         className="erp-topbar"
-        style={{ 
-          position: "sticky", 
-          top: 0, 
-          zIndex: 50, 
-          backgroundColor: "rgba(255, 255, 255, 0.8)", 
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
           padding: "0 1.5rem",
           height: "64px",
           display: "flex",
           alignItems: "center",
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -215,7 +225,7 @@ export default function UserPortal() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 6px -1px rgba(var(--erp-primary-rgb), 0.2)"
+              boxShadow: "0 4px 6px -1px rgba(var(--erp-primary-rgb), 0.2)",
             }}
           >
             <Wallet color="white" size={18} />
@@ -226,25 +236,68 @@ export default function UserPortal() {
                 fontSize: "15px",
                 fontWeight: "700",
                 color: "var(--erp-dark)",
-                lineHeight: "1.2"
+                lineHeight: "1.2",
               }}
             >
               Students Fee Portal
             </div>
-            <div style={{ fontSize: "11px", color: "var(--erp-text-muted)", fontWeight: "500" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--erp-text-muted)",
+                fontWeight: "500",
+              }}
+            >
               College ERP System
             </div>
           </div>
         </div>
-        
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1.5rem" }}>
+
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: "1.5rem",
+          }}
+        >
           {user && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingRight: "1.5rem", borderRight: "1px solid #e2e8f0" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                paddingRight: "1.5rem",
+                borderRight: "1px solid #e2e8f0",
+              }}
+            >
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--erp-dark)" }}>{user.name || "Student"}</div>
-                <div style={{ fontSize: "11px", color: "var(--erp-text-muted)" }}>{user.email}</div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "var(--erp-dark)",
+                  }}
+                >
+                  {user.name || "Student"}
+                </div>
+                <div
+                  style={{ fontSize: "11px", color: "var(--erp-text-muted)" }}
+                >
+                  {user.email}
+                </div>
               </div>
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  backgroundColor: "#e2e8f0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <User size={16} color="#64748b" />
               </div>
             </div>
@@ -279,38 +332,63 @@ export default function UserPortal() {
           maxWidth: "1024px",
           margin: "0 auto",
           padding: "2rem 1.5rem",
-          minHeight: "calc(100vh - 64px)"
+          minHeight: "calc(100vh - 64px)",
         }}
       >
         <div
           className="erp-card"
-          style={{ 
-            marginBottom: "2.5rem", 
-            border: "none", 
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
-            overflow: "hidden"
+          style={{
+            marginBottom: "2.5rem",
+            border: "none",
+            boxShadow:
+              "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+            overflow: "hidden",
           }}
         >
-          <div 
-            style={{ 
-              padding: "2.5rem 2rem", 
-              background: "linear-gradient(135deg, var(--erp-primary) 0%, #6b1634 100%)",
+          <div
+            style={{
+              padding: "2.5rem 2rem",
+              background:
+                "linear-gradient(135deg, var(--erp-primary) 0%, #6b1634 100%)",
               color: "white",
-              position: "relative"
+              position: "relative",
             }}
           >
             <div style={{ position: "relative", zIndex: 1 }}>
-              <h1 style={{ fontSize: "1.875rem", fontWeight: "800", marginBottom: "0.5rem", color: "white" }}>
-                Find Your Bills
+              <h1
+                style={{
+                  fontSize: "1.875rem",
+                  fontWeight: "800",
+                  marginBottom: "0.5rem",
+                  color: "white",
+                }}
+              >
+                Find Your Payments
               </h1>
-              <p style={{ fontSize: "0.9375rem", opacity: 0.9, maxWidth: "600px" }}>
-                Enter your registered Email address to access your pending payments
+              <p
+                style={{
+                  fontSize: "0.9375rem",
+                  opacity: 0.9,
+                  maxWidth: "600px",
+                }}
+              >
+                Enter your registered Email address to access your payments
               </p>
             </div>
             {/* Decorative element */}
-            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "150px", height: "150px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "50%" }}></div>
+            <div
+              style={{
+                position: "absolute",
+                top: "-20px",
+                right: "-20px",
+                width: "150px",
+                height: "150px",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: "50%",
+              }}
+            ></div>
           </div>
-          
+
           <div className="erp-card__body" style={{ padding: "2rem" }}>
             <form
               onSubmit={(e) => {
@@ -320,18 +398,27 @@ export default function UserPortal() {
               style={{ display: "flex", gap: "12px", maxWidth: "800px" }}
             >
               <div style={{ flex: 1, position: "relative" }}>
-                <Search size={18} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+                <Search
+                  size={18}
+                  style={{
+                    position: "absolute",
+                    left: "14px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#94a3b8",
+                  }}
+                />
                 <input
                   type="text"
                   className="erp-form-control"
-                  style={{ 
-                    width: "100%", 
-                    paddingLeft: "42px", 
-                    height: "52px", 
-                    fontSize: "15px", 
+                  style={{
+                    width: "100%",
+                    paddingLeft: "42px",
+                    height: "52px",
+                    fontSize: "15px",
                     borderRadius: "12px",
                     border: "2px solid #e2e8f0",
-                    transition: "all 0.2s"
+                    transition: "all 0.2s",
                   }}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
@@ -343,38 +430,53 @@ export default function UserPortal() {
                 type="submit"
                 disabled={loading}
                 className="erp-btn erp-btn--primary"
-                style={{ 
-                  height: "52px", 
-                  padding: "0 2rem", 
-                  borderRadius: "12px", 
-                  fontSize: "15px", 
+                style={{
+                  height: "52px",
+                  padding: "0 2rem",
+                  borderRadius: "12px",
+                  fontSize: "15px",
                   fontWeight: "600",
-                  display: "flex", 
-                  alignItems: "center", 
+                  display: "flex",
+                  alignItems: "center",
                   gap: "10px",
-                  boxShadow: "0 4px 6px -1px rgba(var(--erp-primary-rgb), 0.3)"
+                  boxShadow: "0 4px 6px -1px rgba(var(--erp-primary-rgb), 0.3)",
                 }}
               >
-                {loading ? "Searching..." : "Track Bills"}
+                {loading ? "Searching..." : "Search"}
                 <ArrowRight size={18} />
               </button>
             </form>
-            
-            <div style={{ marginTop: "1.25rem", display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "600", color: "#64748b" }}>Quick Search:</span>
+
+            <div
+              style={{
+                marginTop: "1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#64748b",
+                }}
+              >
+                Quick Search:
+              </span>
               <div style={{ display: "flex", gap: "8px" }}>
-                {["1001", "1002"].map(id => (
+                {["1001", "1002"].map((id) => (
                   <button
                     key={id}
                     className="erp-btn"
-                    style={{ 
-                      padding: "4px 12px", 
-                      fontSize: "12px", 
-                      backgroundColor: "#f1f5f9", 
+                    style={{
+                      padding: "4px 12px",
+                      fontSize: "12px",
+                      backgroundColor: "#f1f5f9",
                       color: "#475569",
                       border: "none",
                       borderRadius: "6px",
-                      fontWeight: "500"
+                      fontWeight: "500",
                     }}
                     onClick={() => {
                       setUserId(id);
@@ -392,24 +494,50 @@ export default function UserPortal() {
         {paymentStatus && (
           <div
             className={`erp-alert ${paymentStatus.type === "success" ? "erp-alert--success" : paymentStatus.type === "error" ? "erp-alert--danger" : "erp-alert--info"}`}
-            style={{ 
-              marginBottom: "2rem", 
-              borderRadius: "12px", 
+            style={{
+              marginBottom: "2rem",
+              borderRadius: "12px",
               padding: "1rem 1.25rem",
               display: "flex",
               alignItems: "center",
               gap: "12px",
-              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)"
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
             }}
           >
             {paymentStatus.type === "success" ? (
-              <div style={{ backgroundColor: "#dcfce7", padding: "6px", borderRadius: "8px" }}><CheckCircle size={18} color="#16a34a" /></div>
+              <div
+                style={{
+                  backgroundColor: "#dcfce7",
+                  padding: "6px",
+                  borderRadius: "8px",
+                }}
+              >
+                <CheckCircle size={18} color="#16a34a" />
+              </div>
             ) : paymentStatus.type === "error" ? (
-              <div style={{ backgroundColor: "#fee2e2", padding: "6px", borderRadius: "8px" }}><AlertCircle size={18} color="#dc2626" /></div>
+              <div
+                style={{
+                  backgroundColor: "#fee2e2",
+                  padding: "6px",
+                  borderRadius: "8px",
+                }}
+              >
+                <AlertCircle size={18} color="#dc2626" />
+              </div>
             ) : (
-              <div style={{ backgroundColor: "#e0f2fe", padding: "6px", borderRadius: "8px" }}><AlertCircle size={18} color="#0284c7" /></div>
+              <div
+                style={{
+                  backgroundColor: "#e0f2fe",
+                  padding: "6px",
+                  borderRadius: "8px",
+                }}
+              >
+                <AlertCircle size={18} color="#0284c7" />
+              </div>
             )}
-            <div style={{ fontSize: "14px", fontWeight: "500" }}>{paymentStatus.message}</div>
+            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {paymentStatus.message}
+            </div>
           </div>
         )}
 
@@ -483,56 +611,100 @@ export default function UserPortal() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(220px, 1fr))",
                       gap: "1.5rem",
                       marginBottom: "2rem",
                     }}
                   >
                     {[
-                      { label: "Unpaid Bills", value: pendingBills.length, icon: ReceiptText, color: "#881f42", bg: "#fdf2f8" },
-                      { label: "Pending Amount", value: `₹${totalPending.toLocaleString("en-IN")}`, icon: Wallet, color: "#f59e0b", bg: "#fffbeb" },
-                      { label: "Total Paid", value: `₹${totalPaid.toLocaleString("en-IN")}`, icon: CheckCircle, color: "#10b981", bg: "#ecfdf5" },
-                      { label: "Total Receipts", value: receipts.length, icon: Printer, color: "#64748b", bg: "#f8fafc" }
+                      {
+                        label: "Unpaid Bills",
+                        value: pendingBills.length,
+                        icon: ReceiptText,
+                        color: "#881f42",
+                        bg: "#fdf2f8",
+                      },
+                      {
+                        label: "Pending Amount",
+                        value: `₹${totalPending.toLocaleString("en-IN")}`,
+                        icon: Wallet,
+                        color: "#f59e0b",
+                        bg: "#fffbeb",
+                      },
+                      {
+                        label: "Total Paid",
+                        value: `₹${totalPaid.toLocaleString("en-IN")}`,
+                        icon: CheckCircle,
+                        color: "#10b981",
+                        bg: "#ecfdf5",
+                      },
+                      {
+                        label: "Total Receipts",
+                        value: receipts.length,
+                        icon: Printer,
+                        color: "#64748b",
+                        bg: "#f8fafc",
+                      },
                     ].map((stat, i) => (
                       <div
                         key={i}
                         className="erp-card"
-                        style={{ 
-                          padding: "1.5rem", 
-                          display: "flex", 
-                          alignItems: "center", 
+                        style={{
+                          padding: "1.5rem",
+                          display: "flex",
+                          alignItems: "center",
                           gap: "1.25rem",
                           border: "1px solid rgba(226, 232, 240, 0.5)",
                           boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
                           transition: "transform 0.2s, box-shadow 0.2s",
-                          cursor: "default"
+                          cursor: "default",
                         }}
                         onMouseOver={(e) => {
                           e.currentTarget.style.transform = "translateY(-4px)";
-                          e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0, 0, 0, 0.05)";
+                          e.currentTarget.style.boxShadow =
+                            "0 10px 15px -3px rgba(0, 0, 0, 0.05)";
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 1px 2px 0 rgba(0, 0, 0, 0.05)";
+                          e.currentTarget.style.boxShadow =
+                            "0 1px 2px 0 rgba(0, 0, 0, 0.05)";
                         }}
                       >
-                        <div style={{ 
-                          width: "48px", 
-                          height: "48px", 
-                          backgroundColor: stat.bg, 
-                          borderRadius: "12px", 
-                          display: "flex", 
-                          alignItems: "center", 
-                          justifyContent: "center",
-                          color: stat.color
-                        }}>
+                        <div
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            backgroundColor: stat.bg,
+                            borderRadius: "12px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: stat.color,
+                          }}
+                        >
                           <stat.icon size={24} />
                         </div>
                         <div>
-                          <div style={{ fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.025em" }}>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "#64748b",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.025em",
+                            }}
+                          >
                             {stat.label}
                           </div>
-                          <div style={{ fontSize: "1.25rem", fontWeight: "700", color: "#1e293b", marginTop: "2px" }}>
+                          <div
+                            style={{
+                              fontSize: "1.25rem",
+                              fontWeight: "700",
+                              color: "#1e293b",
+                              marginTop: "2px",
+                            }}
+                          >
                             {stat.value}
                           </div>
                         </div>
@@ -549,14 +721,29 @@ export default function UserPortal() {
                     padding: "4px",
                     backgroundColor: "#f1f5f9",
                     borderRadius: "14px",
-                    width: "fit-content"
+                    width: "fit-content",
                   }}
                 >
                   {[
-                    { id: "pending", label: "Pending", count: pendingBills.length, icon: Wallet },
-                    { id: "paid", label: "Paid", count: paidBills.length, icon: CheckCircle },
-                    { id: "receipts", label: "Receipts", count: receipts.length, icon: ReceiptText }
-                  ].map(tab => (
+                    {
+                      id: "pending",
+                      label: "Pending",
+                      count: pendingBills.length,
+                      icon: Wallet,
+                    },
+                    {
+                      id: "paid",
+                      label: "Paid",
+                      count: paidBills.length,
+                      icon: CheckCircle,
+                    },
+                    {
+                      id: "receipts",
+                      label: "Receipts",
+                      count: receipts.length,
+                      icon: ReceiptText,
+                    },
+                  ].map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
@@ -571,20 +758,32 @@ export default function UserPortal() {
                         fontWeight: "600",
                         cursor: "pointer",
                         transition: "all 0.2s",
-                        backgroundColor: activeTab === tab.id ? "white" : "transparent",
-                        color: activeTab === tab.id ? "var(--erp-primary)" : "#64748b",
-                        boxShadow: activeTab === tab.id ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none"
+                        backgroundColor:
+                          activeTab === tab.id ? "white" : "transparent",
+                        color:
+                          activeTab === tab.id
+                            ? "var(--erp-primary)"
+                            : "#64748b",
+                        boxShadow:
+                          activeTab === tab.id
+                            ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                            : "none",
                       }}
                     >
                       <tab.icon size={16} />
                       {tab.label}
-                      <span style={{ 
-                        fontSize: "11px", 
-                        backgroundColor: activeTab === tab.id ? "rgba(var(--erp-primary-rgb), 0.1)" : "#e2e8f0", 
-                        padding: "2px 8px", 
-                        borderRadius: "20px",
-                        marginLeft: "4px"
-                      }}>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          backgroundColor:
+                            activeTab === tab.id
+                              ? "rgba(var(--erp-primary-rgb), 0.1)"
+                              : "#e2e8f0",
+                          padding: "2px 8px",
+                          borderRadius: "20px",
+                          marginLeft: "4px",
+                        }}
+                      >
                         {tab.count}
                       </span>
                     </button>
@@ -596,11 +795,11 @@ export default function UserPortal() {
                     {pendingBills.length === 0 ? (
                       <div
                         className="erp-card"
-                        style={{ 
-                          padding: "4rem 2rem", 
-                          textAlign: "center", 
+                        style={{
+                          padding: "4rem 2rem",
+                          textAlign: "center",
                           color: "#64748b",
-                          border: "1px dashed #cbd5e1"
+                          border: "1px dashed #cbd5e1",
                         }}
                       >
                         No pending bills to show.
@@ -608,84 +807,157 @@ export default function UserPortal() {
                     ) : (
                       <div style={{ display: "grid", gap: "1rem" }}>
                         {pendingBills.map((b) => (
-                          <div 
-                            key={b.bill_id} 
+                          <div
+                            key={b.bill_id}
                             className="erp-card"
-                            style={{ 
+                            style={{
                               padding: "1.25rem 1.5rem",
                               borderLeft: "4px solid #3b82f6",
-                              transition: "transform 0.2s, box-shadow 0.2s"
+                              transition: "transform 0.2s, box-shadow 0.2s",
                             }}
                             onMouseOver={(e) => {
-                              e.currentTarget.style.transform = "translateX(4px)";
-                              e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.05)";
+                              e.currentTarget.style.transform =
+                                "translateX(4px)";
+                              e.currentTarget.style.boxShadow =
+                                "0 4px 6px -1px rgba(0, 0, 0, 0.05)";
                             }}
                             onMouseOut={(e) => {
                               e.currentTarget.style.transform = "translateX(0)";
                               e.currentTarget.style.boxShadow = "none";
                             }}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                                <div style={{ 
-                                  width: "40px", 
-                                  height: "40px", 
-                                  backgroundColor: "#eff6ff", 
-                                  borderRadius: "10px", 
-                                  display: "flex", 
-                                  alignItems: "center", 
-                                  justifyContent: "center",
-                                  color: "#3b82f6"
-                                }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "1rem",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    backgroundColor: "#eff6ff",
+                                    borderRadius: "10px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#3b82f6",
+                                  }}
+                                >
                                   <ReceiptText size={20} />
                                 </div>
                                 <div>
-                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
-                                    <span style={{ fontSize: "14px", fontWeight: "700", color: "#1e293b" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "700",
+                                        color: "#1e293b",
+                                      }}
+                                    >
                                       {b.program_name || "Brochure Fee"}
                                     </span>
-                                    <span style={{ 
-                                      fontSize: "10px", 
-                                      fontWeight: "800", 
-                                      color: "#3b82f6",
-                                      backgroundColor: "#dbeafe",
-                                      padding: "1px 6px",
-                                      borderRadius: "4px"
-                                    }}>
+                                    <span
+                                      style={{
+                                        fontSize: "10px",
+                                        fontWeight: "800",
+                                        color: "#3b82f6",
+                                        backgroundColor: "#dbeafe",
+                                        padding: "1px 6px",
+                                        borderRadius: "4px",
+                                      }}
+                                    >
                                       PENDING
                                     </span>
                                   </div>
-                                  <div style={{ fontSize: "12px", color: "#64748b" }}>
-                                    {b.bill_type} — {b.academic_year} {b.installment_number && (
-                                      <span style={{ fontWeight: "600", color: "#3b82f6" }}>
+                                  <div
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#64748b",
+                                    }}
+                                  >
+                                    {b.bill_type} — {b.academic_year}{" "}
+                                    {b.installment_number && (
+                                      <span
+                                        style={{
+                                          fontWeight: "600",
+                                          color: "#3b82f6",
+                                        }}
+                                      >
                                         (Inst. {b.installment_number})
                                       </span>
                                     )}
                                   </div>
                                 </div>
                               </div>
-                              <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "1.5rem",
+                                }}
+                              >
                                 <div style={{ textAlign: "right" }}>
-                                  <div style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", fontWeight: "700" }}>Due Amount</div>
-                                  <div style={{ fontSize: "1.25rem", fontWeight: "800", color: "#1e293b" }}>₹{Number(b.amount).toLocaleString("en-IN")}</div>
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#64748b",
+                                      textTransform: "uppercase",
+                                      fontWeight: "700",
+                                    }}
+                                  >
+                                    Due Amount
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: "1.25rem",
+                                      fontWeight: "800",
+                                      color: "#1e293b",
+                                    }}
+                                  >
+                                    ₹{Number(b.amount).toLocaleString("en-IN")}
+                                  </div>
                                 </div>
                                 <button
                                   onClick={() => handlePay(b)}
                                   disabled={payingBillId === b.bill_id}
                                   className="erp-btn erp-btn--primary"
-                                  style={{ 
-                                    padding: "10px 20px", 
-                                    borderRadius: "10px", 
+                                  style={{
+                                    padding: "10px 20px",
+                                    borderRadius: "10px",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "8px",
                                     minWidth: "120px",
-                                    justifyContent: "center"
+                                    justifyContent: "center",
                                   }}
                                 >
                                   {payingBillId === b.bill_id ? (
                                     <>
-                                      <div className="erp-spinner" style={{ width: "16px", height: "16px", border: "2px solid white", borderTopColor: "transparent" }}></div>
+                                      <div
+                                        className="erp-spinner"
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          border: "2px solid white",
+                                          borderTopColor: "transparent",
+                                        }}
+                                      ></div>
                                       Wait...
                                     </>
                                   ) : (
@@ -711,7 +983,7 @@ export default function UserPortal() {
                           padding: "4rem 2rem",
                           textAlign: "center",
                           color: "#64748b",
-                          border: "1px dashed #cbd5e1"
+                          border: "1px dashed #cbd5e1",
                         }}
                       >
                         No completed payments found.
@@ -719,50 +991,92 @@ export default function UserPortal() {
                     ) : (
                       <div style={{ display: "grid", gap: "1rem" }}>
                         {paidBills.map((b) => (
-                          <div 
-                            key={b.bill_id} 
+                          <div
+                            key={b.bill_id}
                             className="erp-card"
-                            style={{ 
+                            style={{
                               padding: "1.25rem 1.5rem",
-                              borderLeft: "4px solid #10b981"
+                              borderLeft: "4px solid #10b981",
                             }}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                                <div style={{ 
-                                  width: "40px", 
-                                  height: "40px", 
-                                  backgroundColor: "#ecfdf5", 
-                                  borderRadius: "10px", 
-                                  display: "flex", 
-                                  alignItems: "center", 
-                                  justifyContent: "center",
-                                  color: "#10b981"
-                                }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "1rem",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    backgroundColor: "#ecfdf5",
+                                    borderRadius: "10px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#10b981",
+                                  }}
+                                >
                                   <CheckCircle size={20} />
                                 </div>
                                 <div>
-                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
-                                    <span style={{ fontSize: "14px", fontWeight: "700", color: "#1e293b" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "700",
+                                        color: "#1e293b",
+                                      }}
+                                    >
                                       {b.program_name || "Brochure Fee"}
                                     </span>
-                                    <span style={{ 
-                                      fontSize: "10px", 
-                                      fontWeight: "800", 
-                                      color: "#10b981",
-                                      backgroundColor: "#d1fae5",
-                                      padding: "1px 6px",
-                                      borderRadius: "4px"
-                                    }}>
+                                    <span
+                                      style={{
+                                        fontSize: "10px",
+                                        fontWeight: "800",
+                                        color: "#10b981",
+                                        backgroundColor: "#d1fae5",
+                                        padding: "1px 6px",
+                                        borderRadius: "4px",
+                                      }}
+                                    >
                                       PAID
                                     </span>
                                   </div>
-                                  <div style={{ fontSize: "12px", color: "#64748b" }}>
-                                    {b.bill_type} — {b.academic_year} {b.installment_number && `(Installment ${b.installment_number})`}
+                                  <div
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#64748b",
+                                    }}
+                                  >
+                                    {b.bill_type} — {b.academic_year}{" "}
+                                    {b.installment_number &&
+                                      `(Installment ${b.installment_number})`}
                                   </div>
                                 </div>
                               </div>
-                              <div style={{ fontSize: "1.25rem", fontWeight: "800", color: "#10b981" }}>
+                              <div
+                                style={{
+                                  fontSize: "1.25rem",
+                                  fontWeight: "800",
+                                  color: "#10b981",
+                                }}
+                              >
                                 ₹{Number(b.amount).toLocaleString("en-IN")}
                               </div>
                             </div>
@@ -782,50 +1096,198 @@ export default function UserPortal() {
                           padding: "4rem 2rem",
                           textAlign: "center",
                           color: "#64748b",
-                          border: "1px dashed #cbd5e1"
+                          border: "1px dashed #cbd5e1",
                         }}
                       >
                         No receipts found.
                       </div>
                     ) : (
-                      <div className="erp-card" style={{ border: "1px solid #e2e8f0", overflow: "hidden" }}>
+                      <div
+                        className="erp-card"
+                        style={{
+                          border: "1px solid #e2e8f0",
+                          overflow: "hidden",
+                        }}
+                      >
                         <div style={{ overflowX: "auto" }}>
-                          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                            <thead style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                          <table
+                            style={{
+                              width: "100%",
+                              borderCollapse: "collapse",
+                              textAlign: "left",
+                            }}
+                          >
+                            <thead
+                              style={{
+                                backgroundColor: "#f8fafc",
+                                borderBottom: "1px solid #e2e8f0",
+                              }}
+                            >
                               <tr>
-                                <th style={{ padding: "14px 20px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Receipt #</th>
-                                <th style={{ padding: "14px 20px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Details</th>
-                                <th style={{ padding: "14px 20px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Amount</th>
-                                <th style={{ padding: "14px 20px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                                <th style={{ padding: "14px 20px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Action</th>
+                                <th
+                                  style={{
+                                    padding: "14px 20px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    color: "#64748b",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  Receipt #
+                                </th>
+                                <th
+                                  style={{
+                                    padding: "14px 20px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    color: "#64748b",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  Details
+                                </th>
+                                <th
+                                  style={{
+                                    padding: "14px 20px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    color: "#64748b",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  Amount
+                                </th>
+                                <th
+                                  style={{
+                                    padding: "14px 20px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    color: "#64748b",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  Date
+                                </th>
+                                <th
+                                  style={{
+                                    padding: "14px 20px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    color: "#64748b",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  Action
+                                </th>
                               </tr>
                             </thead>
                             <tbody>
                               {receipts.map((r) => (
-                                <tr key={r.receipt_id} style={{ borderBottom: "1px solid #f1f5f9", transition: "background-color 0.1s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#f8fafc"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
-                                  <td style={{ padding: "16px 20px", fontWeight: "700", color: "var(--erp-primary)", fontSize: "14px", fontFamily: "monospace" }}>{r.receipt_number}</td>
-                                  <td style={{ padding: "16px 20px" }}>
-                                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{r.bill_type}</div>
-                                    <div style={{ fontSize: "12px", color: "#64748b" }}>{r.user_class} • {r.academic_year}</div>
+                                <tr
+                                  key={r.receipt_id}
+                                  style={{
+                                    borderBottom: "1px solid #f1f5f9",
+                                    transition: "background-color 0.1s",
+                                  }}
+                                  onMouseOver={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#f8fafc")
+                                  }
+                                  onMouseOut={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "transparent")
+                                  }
+                                >
+                                  <td
+                                    style={{
+                                      padding: "16px 20px",
+                                      fontWeight: "700",
+                                      color: "var(--erp-primary)",
+                                      fontSize: "14px",
+                                      fontFamily: "monospace",
+                                    }}
+                                  >
+                                    {r.receipt_number}
                                   </td>
-                                  <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "700", color: "#1e293b", fontSize: "15px" }}>₹{Number(r.amount).toLocaleString("en-IN")}</td>
-                                  <td style={{ padding: "16px 20px", color: "#64748b", fontSize: "13px" }}>{new Date(r.created_at).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                  <td style={{ padding: "16px 20px", textAlign: "center" }}>
+                                  <td style={{ padding: "16px 20px" }}>
+                                    <div
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "600",
+                                        color: "#1e293b",
+                                      }}
+                                    >
+                                      {r.bill_type}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: "12px",
+                                        color: "#64748b",
+                                      }}
+                                    >
+                                      {r.user_class} • {r.academic_year}
+                                    </div>
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "16px 20px",
+                                      textAlign: "right",
+                                      fontWeight: "700",
+                                      color: "#1e293b",
+                                      fontSize: "15px",
+                                    }}
+                                  >
+                                    ₹{Number(r.amount).toLocaleString("en-IN")}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "16px 20px",
+                                      color: "#64748b",
+                                      fontSize: "13px",
+                                    }}
+                                  >
+                                    {new Date(r.created_at).toLocaleDateString(
+                                      "en-IN",
+                                      {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                      },
+                                    )}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "16px 20px",
+                                      textAlign: "center",
+                                    }}
+                                  >
                                     <button
-                                      onClick={() => window.open(`/receipt/${r.receipt_id}/print`, "_blank")}
+                                      onClick={() =>
+                                        window.open(
+                                          `/receipt/${r.receipt_id}/print`,
+                                          "_blank",
+                                        )
+                                      }
                                       className="erp-btn"
-                                      style={{ 
-                                        padding: "8px 12px", 
-                                        borderRadius: "8px", 
-                                        backgroundColor: "#f1f5f9", 
-                                        border: "none", 
+                                      style={{
+                                        padding: "8px 12px",
+                                        borderRadius: "8px",
+                                        backgroundColor: "#f1f5f9",
+                                        border: "none",
                                         color: "var(--erp-primary)",
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: "6px",
                                         fontSize: "13px",
                                         fontWeight: "600",
-                                        cursor: "pointer"
+                                        cursor: "pointer",
                                       }}
                                     >
                                       <Download size={14} /> Download
@@ -845,7 +1307,7 @@ export default function UserPortal() {
           </>
         )}
       </main>
-      
+
       {/* Dynamic styles for animations */}
       <style>{`
         @keyframes fadeIn {

@@ -74,7 +74,7 @@ export default function AdminLayout({ children, title }) {
     <div
       className={`erp-admin-wrapper ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
     >
-      {/* Mobile Overlay */}
+      {/* Overlay — shown on mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div
           className="erp-sidebar-overlay"
@@ -85,21 +85,30 @@ export default function AdminLayout({ children, title }) {
             backgroundColor: "rgba(0,0,0,0.5)",
             zIndex: 99,
             backdropFilter: "blur(4px)",
-            transition: "opacity 0.3s ease",
           }}
         />
       )}
 
+      {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
-        className={`erp-sidebar ${isMobile && isSidebarOpen ? "erp-sidebar--mobile-open" : ""}`}
+        className="erp-sidebar"
         style={{
+          position: isMobile ? "fixed" : "sticky",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          height: isMobile ? "100vh" : "100vh",
           zIndex: 100,
-          width: isSidebarOpen ? "260px" : "0px",
-          overflow: "hidden",
-          transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          width: "260px",
+          flexShrink: 0,
+          alignSelf: "flex-start",
+          transform: isSidebarOpen ? "translateX(0)" : "translateX(-260px)",
+          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
-        <div className="erp-sidebar__brand" style={{ minWidth: "260px" }}>
+        <div className="erp-sidebar__brand">
           <div
             style={{
               background: "linear-gradient(135deg, white, #f1f5f9)",
@@ -109,21 +118,23 @@ export default function AdminLayout({ children, title }) {
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+              flexShrink: 0,
             }}
           >
             <ShieldCheck color="var(--erp-primary)" size={24} />
           </div>
-          <div className="erp-sidebar__brand-text" style={{ marginLeft: 12 }}>
+          <div className="erp-sidebar__brand-text" style={{ marginLeft: 12, overflow: "hidden" }}>
             <h2
               style={{
                 fontSize: "1.125rem",
                 fontWeight: "800",
                 letterSpacing: "-0.025em",
+                whiteSpace: "nowrap",
               }}
             >
               PVGCOSC
             </h2>
-            <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
+            <span style={{ fontSize: "0.75rem", opacity: 0.8, whiteSpace: "nowrap" }}>
               Fees & Billing
             </span>
           </div>
@@ -133,10 +144,12 @@ export default function AdminLayout({ children, title }) {
               onClick={() => setIsSidebarOpen(false)}
               style={{
                 marginLeft: "auto",
+                flexShrink: 0,
                 background: "none",
                 border: "none",
                 color: "white",
                 cursor: "pointer",
+                padding: "4px",
               }}
             >
               <X size={20} />
@@ -144,7 +157,7 @@ export default function AdminLayout({ children, title }) {
           )}
         </div>
 
-        <nav className="erp-sidebar__nav" style={{ minWidth: "260px" }}>
+        <nav className="erp-sidebar__nav">
           <div
             className="erp-nav-label"
             style={{
@@ -153,6 +166,7 @@ export default function AdminLayout({ children, title }) {
               textTransform: "uppercase",
               letterSpacing: "0.1em",
               padding: "0 12px 12px",
+              whiteSpace: "nowrap",
             }}
           >
             Main Menu
@@ -171,9 +185,10 @@ export default function AdminLayout({ children, title }) {
                   transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                   borderRadius: "10px",
                   margin: "2px 0",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <item.icon size={18} style={{ marginRight: "12px" }} />
+                <item.icon size={18} style={{ marginRight: "12px", flexShrink: 0 }} />
                 <span
                   className="erp-nav-item__text"
                   style={{ fontWeight: isActive ? "700" : "500" }}
@@ -188,6 +203,7 @@ export default function AdminLayout({ children, title }) {
                       height: "16px",
                       backgroundColor: "white",
                       borderRadius: "4px",
+                      flexShrink: 0,
                     }}
                   />
                 )}
@@ -200,15 +216,13 @@ export default function AdminLayout({ children, title }) {
           className="erp-sidebar__footer"
           style={{
             borderTop: "1px solid rgba(255,255,255,0.1)",
-            paddingTop: "1.5rem",
-            minWidth: "260px",
           }}
         >
           <div className="erp-avatar erp-avatar--md bg-white/10 text-white font-bold backdrop-blur-md border border-white/20">
             {user?.email?.charAt(0).toUpperCase() || "A"}
           </div>
           <div className="erp-sidebar__user-info">
-            <p style={{ fontWeight: "600", fontSize: "0.875rem" }}>
+            <p style={{ fontWeight: "600", fontSize: "0.875rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {user?.email?.split("@")[0] || "Admin"}
             </p>
             <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
@@ -225,6 +239,7 @@ export default function AdminLayout({ children, title }) {
         </div>
       </aside>
 
+      {/* ── Main content area ────────────────────────────────── */}
       <div
         className="erp-main-container"
         style={{
@@ -232,8 +247,16 @@ export default function AdminLayout({ children, title }) {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
-          width: isSidebarOpen ? "calc(100% - 260px)" : "100%",
-          transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          /*
+           * Desktop: sidebar is position:relative so it takes 260px in the flex row.
+           * When closed it slides left via translateX(-260px) but still occupies
+           * that 260px space — we pull the container left by 260px to fill the gap.
+           * Mobile: sidebar is position:fixed, never affects layout.
+           */
+          marginLeft: !isMobile && !isSidebarOpen ? "-260px" : "0",
+          transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          minWidth: 0,
+          overflow: "hidden",
         }}
       >
         <header
@@ -246,18 +269,22 @@ export default function AdminLayout({ children, title }) {
             top: 0,
             zIndex: 50,
             padding: "0 1.5rem",
-            paddingLeft: "17.8rem",
             display: "flex",
             alignItems: "center",
+            gap: "1rem",
           }}
         >
+          {/* Hamburger — always visible, toggles sidebar */}
           <button
             className="erp-topbar__btn"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isSidebarOpen}
             style={{
               backgroundColor: "white",
               border: "1px solid var(--erp-border)",
               boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              flexShrink: 0,
             }}
           >
             <Menu size={20} />
@@ -335,16 +362,11 @@ export default function AdminLayout({ children, title }) {
         }
 
         @media (max-width: 1024px) {
-          .erp-sidebar {
-            position: fixed !important;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            transform: translateX(-100%);
-            width: 260px !important;
-          }
-          .erp-sidebar--mobile-open {
-            transform: translateX(0);
+          /* On mobile the sidebar is position:fixed (set via JS inline style).
+             The main container always fills full width — no margin adjustment needed. */
+          .erp-main-container {
+            margin-left: 0 !important;
+            width: 100%;
           }
         }
         

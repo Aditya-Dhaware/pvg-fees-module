@@ -1,4 +1,4 @@
-from app.api.endpoints import (admission, audit_logs, auth, bills, dashboard,
+from app.api.v1.endpoints import (admission, audit_logs, auth, bills, dashboard,
                                payments, receipts, refunds, stats)
 from fastapi import APIRouter
 
