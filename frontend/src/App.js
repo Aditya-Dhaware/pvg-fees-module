@@ -1,7 +1,8 @@
 import React from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import AuthGate from "@/auth/AuthGate";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import BillManagement from "@/pages/BillManagement";
@@ -12,24 +13,23 @@ import UserPortal from "@/pages/UserPortal";
 import PrintReceipt from "@/pages/PrintReceipt";
 import BrochurePayment from "@/pages/BrochurePayment";
 
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+function AdminProtectedRoute({ children }) {
+  return (
+    <AuthGate allowedRoles={["admin", "accountant", "principal", "vice_principal"]}>
+      {children}
+    </AuthGate>
+  );
+}
+
+function StudentProtectedRoute() {
+  const [searchParams] = useSearchParams();
+  const userId = searchParams.get("user_id") || searchParams.get("student_id") || "";
   
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB]">
-        <div className="text-sm text-[#6B7280]">Loading...</div>
-      </div>
-    );
-  }
-  if (!user) return <Navigate to={`/${location.search}`} replace />;
-  
-  if (user.role !== 'admin') {
-    return <Navigate to={`/user-portal${location.search}`} replace />;
-  }
-  
-  return children;
+  return (
+    <AuthGate allowedRoles={["Student", "admin", "accountant", "principal", "vice_principal"]} checkUserId={userId}>
+      <UserPortal />
+    </AuthGate>
+  );
 }
 
 function PublicRoute({ children }) {
@@ -45,8 +45,13 @@ function PublicRoute({ children }) {
   }
   
   if (user) {
-    if (user.role === 'admin') return <Navigate to={`/admin${location.search}`} replace />;
-    if (user.role === 'student') return <Navigate to={`/user-portal${location.search}`} replace />;
+    const role = String(user.role || "").toLowerCase();
+    if (role === "admin" || role === "accountant" || role === "principal" || role === "vice_principal") {
+      return <Navigate to={`/admin${location.search}`} replace />;
+    }
+    if (role === "student") {
+      return <Navigate to={`/user-portal${location.search}`} replace />;
+    }
   }
   
   return children;
@@ -56,15 +61,19 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<PublicRoute><AdminLogin /></PublicRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/bills" element={<ProtectedRoute><BillManagement /></ProtectedRoute>} />
-      <Route path="/admin/payments" element={<ProtectedRoute><PaymentHistory /></ProtectedRoute>} />
-      <Route path="/admin/refunds" element={<ProtectedRoute><RefundManagement /></ProtectedRoute>} />
-      <Route path="/admin/receipts" element={<ProtectedRoute><ReceiptList /></ProtectedRoute>} />
-      <Route path="/user" element={<UserPortal />} />
-      <Route path="/user-portal" element={<UserPortal />} />
+      <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
+      <Route path="/admin/bills" element={<AdminProtectedRoute><BillManagement /></AdminProtectedRoute>} />
+      <Route path="/admin/payments" element={<AdminProtectedRoute><PaymentHistory /></AdminProtectedRoute>} />
+      <Route path="/admin/refunds" element={<AdminProtectedRoute><RefundManagement /></AdminProtectedRoute>} />
+      <Route path="/admin/receipts" element={<AdminProtectedRoute><ReceiptList /></AdminProtectedRoute>} />
+      <Route path="/user" element={<StudentProtectedRoute />} />
+      <Route path="/user-portal" element={<StudentProtectedRoute />} />
       <Route path="/pay/brochure" element={<BrochurePayment />} />
-      <Route path="/receipt/:id/print" element={<PrintReceipt />} />
+      <Route path="/receipt/:id/print" element={
+        <AuthGate allowedRoles={["Student", "admin", "accountant", "principal", "vice_principal"]}>
+          <PrintReceipt />
+        </AuthGate>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

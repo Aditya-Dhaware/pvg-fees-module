@@ -48,9 +48,19 @@ async def get_pending_bills(
     student_id: Optional[str] = None,
     academic_year: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
 ):
-    query = select(Bill).where(Bill.status == "UNPAID")
     uid = user_id or student_id
+    if uid:
+        deps.check_user_permission(uid, payload)
+    else:
+        if str(payload.get("role", "")).lower() != "admin":
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied: Admin role required to list all pending bills",
+            )
+
+    query = select(Bill).where(Bill.status == "UNPAID")
     if uid:
         query = query.where(Bill.user_id == uid)
     if academic_year:
@@ -65,7 +75,13 @@ async def get_pending_bills(
 
 
 @router.get("/user/{user_id}", response_model=List[BillSchema])
-async def get_user_bills(user_id: str, db: AsyncSession = Depends(get_db)):
+async def get_user_bills(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
+    deps.check_user_permission(user_id, payload)
+
     # First, find all unique User IDs and Emails associated with the search term
     # This "links" the identities (e.g., finding the Student ID from an Email)
     identity_query = select(Bill.user_id, Bill.user_email).where(
@@ -96,9 +112,14 @@ async def get_user_bills(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{bill_id}", response_model=BillSchema)
-async def get_bill(bill_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_bill(
+    bill_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
     result = await db.execute(select(Bill).where(Bill.bill_id == bill_id))
     bill = result.scalar_one_or_none()
     if not bill:
         raise HTTPException(status_code=404, detail="Bill not found")
+    deps.check_user_permission(bill.user_id, payload)
     return bill

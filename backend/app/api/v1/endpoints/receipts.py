@@ -54,7 +54,13 @@ async def list_receipts(
 
 
 @router.get("/user/{user_id}", response_model=List[ReceiptSchema])
-async def get_user_receipts(user_id: str, db: AsyncSession = Depends(get_db)):
+async def get_user_receipts(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
+    deps.check_user_permission(user_id, payload)
+
     # First, find all unique User IDs and Emails associated with the search term
     # This "links" the identities (e.g., finding the Student ID from an Email)
     identity_query = select(Bill.user_id, Bill.user_email).where(
@@ -104,7 +110,11 @@ async def get_user_receipts(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{receipt_id}", response_model=ReceiptSchema)
-async def get_receipt(receipt_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_receipt(
+    receipt_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
     query = (
         select(
             Receipt,
@@ -125,6 +135,8 @@ async def get_receipt(receipt_id: UUID, db: AsyncSession = Depends(get_db)):
 
     if not row:
         raise HTTPException(status_code=404, detail="Receipt not found")
+
+    deps.check_user_permission(row.Receipt.user_id, payload)
 
     r = row.Receipt
     r.program_name = row.program_name

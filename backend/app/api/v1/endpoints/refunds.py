@@ -219,7 +219,12 @@ async def list_refunds(
 
 
 @router.get("/user/{user_id}", response_model=List[RefundSchema])
-async def get_user_refunds(user_id: str, db: AsyncSession = Depends(get_db)):
+async def get_user_refunds(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
+    deps.check_user_permission(user_id, payload)
     query = (
         select(Refund, Bill.program_name, Bill.academic_year, Bill.bill_type)
         .outerjoin(Payment, Refund.payment_id == Payment.payment_id)

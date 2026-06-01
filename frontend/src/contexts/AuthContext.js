@@ -18,49 +18,24 @@ export function AuthProvider({ children }) {
     
     if (urlToken) {
       localStorage.setItem("token", urlToken);
+      sessionStorage.setItem("token", urlToken);
       // Clean up URL to prevent token from being shared/bookmarked
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) { setLoading(false); return; }
     
     try {
-      console.log("DEBUG: Checking token:", token ? "Token exists" : "No token");
-      
-      // Robust decoding of the JWT payload (handles URL-safe base64)
-      const payloadBase64 = token.split('.')[1];
-      if (!payloadBase64) throw new Error("Invalid token format");
-      
-      const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      
-      const payload = JSON.parse(jsonPayload);
-      console.log("DEBUG: Token payload decoded:", payload);
-      
-      const role = String(payload.role || "").toLowerCase();
-      
-      if (role === 'student') {
-        console.log("DEBUG: Identified as Student");
-        setUser({
-          email: payload.email,
-          name: payload.full_name || payload.username,
-          role: 'student',
-          id: payload.user_id
-        });
-        setLoading(false);
-        return;
-      }
-
-      console.log("DEBUG: Identified as Admin, verifying with backend...");
+      console.log("DEBUG: Verifying session with backend...");
       const { data } = await api.get("/auth/me");
-      console.log("DEBUG: Backend verification success:", data);
-      setUser({ ...data, role: 'admin' });
+      console.log("DEBUG: Backend session verification success:", data);
+      setUser(data);
     } catch (error) {
-      console.error("DEBUG: Auth check failed:", error);
+      console.error("DEBUG: Session verification failed:", error);
       localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      setUser(null);
     }
     setLoading(false);
   };
@@ -77,6 +52,7 @@ export function AuthProvider({ children }) {
     
     try { await api.post("/auth/logout"); } catch {}
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     
     if (authUrl) {
       // Redirect immediately. We DON'T call setUser(null) here 

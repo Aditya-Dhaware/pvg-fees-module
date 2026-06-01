@@ -5,7 +5,7 @@ from app.core import security
 from app.db.session import get_db
 from app.models.admin import AdminUser
 from app.schemas.admin import AdminUser as AdminUserSchema
-from app.schemas.admin import LoginRequest
+from app.schemas.admin import LoginRequest, UserProfile
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,6 +52,32 @@ async def logout(response: Response):
     return {"message": "Logged out"}
 
 
-@router.get("/me", response_model=AdminUserSchema)
-async def get_me(admin: AdminUser = Depends(deps.get_current_admin)):
-    return admin
+@router.get("/me", response_model=UserProfile)
+async def get_me(
+    payload: dict = Depends(deps.get_current_user_payload),
+    db: AsyncSession = Depends(get_db),
+):
+    role = str(payload.get("role", "student")).lower()
+    subject = payload.get("sub") or payload.get("id") or payload.get("user_id")
+    email = payload.get("email")
+    name = payload.get("full_name") or payload.get("username") or payload.get("name") or "User"
+
+    if role == "admin":
+        try:
+            admin_user = await deps.get_current_admin(payload, db)
+            if admin_user:
+                return {
+                    "id": str(admin_user.id),
+                    "email": admin_user.email,
+                    "name": admin_user.name,
+                    "role": "admin"
+                }
+        except Exception:
+            pass
+
+    return {
+        "id": str(subject),
+        "email": email or "",
+        "name": name,
+        "role": role
+    }

@@ -27,8 +27,12 @@ logger = logging.getLogger(__name__)
 
 @router.post("/create-order")
 async def create_payment_order(
-    bill_id: UUID, user_id: str, db: AsyncSession = Depends(get_db)
+    bill_id: UUID,
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
 ):
+    deps.check_user_permission(user_id, payload)
     result = await db.execute(select(Bill).where(Bill.bill_id == bill_id))
     bill = result.scalar_one_or_none()
 
@@ -126,6 +130,7 @@ async def verify_payment(
     req: VerifyPaymentRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
 ):
     logger.info(f"Verifying payment for Order: {req.razorpay_order_id}")
     if not razorpay_service.verify_signature(
@@ -172,6 +177,8 @@ async def verify_payment(
             status_code=404,
             detail="Payment verification failed: Order record not found",
         )
+
+    deps.check_user_permission(payment.user_id, payload)
 
     logger.info(f"Payment record found: {payment.payment_id}")
 
@@ -540,7 +547,12 @@ async def list_payments(
 
 
 @router.get("/user/{user_id}", response_model=List[PaymentSchema])
-async def get_user_payments(user_id: str, db: AsyncSession = Depends(get_db)):
+async def get_user_payments(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(deps.get_current_user_payload),
+):
+    deps.check_user_permission(user_id, payload)
     query = (
         select(Payment, Bill.program_name, Bill.academic_year, Bill.bill_type)
         .outerjoin(Bill, Payment.bill_id == Bill.bill_id)

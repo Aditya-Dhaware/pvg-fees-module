@@ -29,3 +29,11 @@ class AdminUser(AdminUserBase):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class UserProfile(BaseModel):
+    id: str
+    email: str
+    name: str
+    role: str
+
